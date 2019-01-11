@@ -15,16 +15,15 @@ def cert_to_dict(cert):
     cert_dict.update(dict(cert['subject'][i]))
   return cert_dict
 
-
-def DN_check(filename, client_DN):
+def valid_cert(client_cert, filename = 'Test_DN'):
   '''Comparing client DN in dictionary form to DN which are in text file'''
-
+  client_dn = cert_to_dict(client_cert)
   DN_file = open(filename, "r")
   cert_dictionary_list = []
   for line in DN_file:
     dictionary = json.loads(line)
     cert_dictionary_list.append(dictionary)
-  list_of_equal = filter(lambda x: x == client_DN, cert_dictionary_list)
+  list_of_equal = filter(lambda x: x == client_dn, cert_dictionary_list)
   if list_of_equal != 0:
     return True
 
@@ -37,22 +36,24 @@ class MainHandler(tornado.web.RequestHandler):
   def initialize(self):
     """Auth by cert"""
     client_cert = self.request.get_ssl_certificate()
-    self.client_dn = cert_to_dict(client_cert)
-    if not DN_check("Test_DN", self.client_dn):
+    if not valid_cert(client_cert):
       print "This certificate is not authorized!"
       self.finish()
 
   def get(self):
     """get function of jsonhandler"""
-    self.write(self.client_dn)
+    self.write("blabla")
 
   def post(self):
     """post function of json handler"""
     self.write(self.request.get_ssl_certificate())
-    json_message = json.loads(
+    message = json.loads(
         self.request.body.decode('string-escape').strip('"'))
-    # json.loads(json.loads(self.request.body)) #you can try with this too ^^
-    if json_message["source"] == "InstallDIRAC":
+    self.sendMessage(message) # send message to MQ
+
+  def sendMessage(self, message):
+    #Just for a moment
+    if message["source"] == "InstallDIRAC":
       self.write("\nSource is correct")
 
 class TestHandler(tornado.web.RequestHandler):
