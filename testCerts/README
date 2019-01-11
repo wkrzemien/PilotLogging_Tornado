@@ -1,0 +1,11 @@
+# create a fake CA key
+openssl genrsa -out CAkey.pem 2048
+# create a fake CA cert
+openssl req -x509 -new -nodes -key CAkey.pem -sha256 -days 1024 -out CAcert.pem
+#create user key
+openssl genrsa -out user.key 2048
+#create user request
+openssl req -new -key user.key -out user.csr
+# sign by your fake CA
+openssl x509 -req -in user.csr -CA CAcert.pem -CAkey CAkey.pem -CAcreateserial -out user.crt -days 500 -sha256
+
