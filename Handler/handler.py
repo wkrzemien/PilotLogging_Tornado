@@ -32,22 +32,6 @@ def DN_check(filename, client_DN):
 
 
 class MainHandler(tornado.web.RequestHandler):
-  """Request handler for the main page of the app localhost:1027"""
-
-  def get(self):
-    """Information about server which returns with  HTTP Get"""
-    self.render("MainPage.html")
-
-  def post(self):
-    """Post function"""
-    if self.get_argument('User') == "U" and self.get_argument('Password') == "R":
-      self.write("Ok")
-      self.redirect("https://localhost:1027/random")
-    else:
-      self.write("Nope")
-
-
-class JsonHandler(tornado.web.RequestHandler):
   """Request handler for json messages"""
 
   def initialize(self):
@@ -55,6 +39,7 @@ class JsonHandler(tornado.web.RequestHandler):
     client_cert = self.request.get_ssl_certificate()
     self.client_dn = cert_to_dict(client_cert)
     if not DN_check("Test_DN", self.client_dn):
+      print "This certificate is not authorized!"
       self.finish()
 
   def get(self):
@@ -70,11 +55,26 @@ class JsonHandler(tornado.web.RequestHandler):
     if json_message["source"] == "InstallDIRAC":
       self.write("\nSource is correct")
 
+class TestHandler(tornado.web.RequestHandler):
+  """Request handler for the main page of the app localhost:1027"""
+
+  def get(self):
+    """Information about server which returns with  HTTP Get"""
+    self.render("MainPage.html")
+
+  def post(self):
+    """Post function"""
+    if self.get_argument('User') == "U" and self.get_argument('Password') == "R":
+      self.write("Ok")
+      self.redirect("https://localhost:1027/random")
+    else:
+      self.write("Nope")
+
 
 def make_app():
   """Make app with two pages main and random"""
-  return tornado.web.Application([(r"/", MainHandler),
-                                  (r"/json", JsonHandler)])
+  return tornado.web.Application([(r"/", TestHandler),
+                                  (r"/json", MainHandler)])
 
 
 def generate_ssl_context():
