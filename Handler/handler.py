@@ -15,17 +15,18 @@ def cert_to_dict(cert):
     cert_dict.update(dict(cert['subject'][i]))
   return cert_dict
 
-def valid_cert(client_cert, filename = 'Test_DN'):
+def valid_cert(client_cert, validDNs):
   '''Comparing client DN in dictionary form to DN which are in text file'''
   client_dn = cert_to_dict(client_cert)
-  DN_file = open(filename, "r")
+  return client_dn in validDNs
+
+def getValidDNs(filename = 'Test_DN'):
+  fileDN = open(filename, "r")
   cert_dictionary_list = []
-  for line in DN_file:
+  for line in fileDN:
     dictionary = json.loads(line)
     cert_dictionary_list.append(dictionary)
-  list_of_equal = filter(lambda x: x == client_dn, cert_dictionary_list)
-  if list_of_equal != 0:
-    return True
+  return cert_dictionary_list
 
 # pylint: disable = W0223, invalid-name, arguments-differ
 
@@ -35,8 +36,12 @@ class MainHandler(tornado.web.RequestHandler):
 
   def initialize(self):
     """Auth by cert"""
+    self.current_DNs = getValidDNs()
     client_cert = self.request.get_ssl_certificate()
-    if not valid_cert(client_cert):
+    print "ok?"
+    print self.current_DNs
+    print client_cert
+    if not valid_cert(client_cert, validDNs = self.current_DNs):
       print "This certificate is not authorized!"
       self.finish()
 
