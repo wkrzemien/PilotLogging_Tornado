@@ -23,7 +23,7 @@ def valid_cert(client_cert, validDNs):
   return client_dn in validDNs
 
 
-def getValidDNs(filename='Test_DN'):
+def getValidDNs(filename='Test_DN.json'):
   dnList = []
   with open(filename, "r") as fileDN:
     dnList = json.load(fileDN)
