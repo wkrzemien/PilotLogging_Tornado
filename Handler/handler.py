@@ -38,9 +38,6 @@ class MainHandler(tornado.web.RequestHandler):
     """Auth by cert"""
     self.current_DNs = getValidDNs()
     client_cert = self.request.get_ssl_certificate()
-    print "ok?"
-    print self.current_DNs
-    print client_cert
     if not valid_cert(client_cert, validDNs = self.current_DNs):
       print "This certificate is not authorized!"
       self.finish()
