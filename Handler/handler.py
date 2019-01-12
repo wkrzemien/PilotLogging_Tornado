@@ -19,7 +19,6 @@ def cert_to_dict(cert):
 def valid_cert(client_cert, validDNs):
   '''Comparing client DN in dictionary form to DN which are in text file'''
   client_dn = cert_to_dict(client_cert)
-  print client_dn
   return client_dn in validDNs
 
 
@@ -45,19 +44,18 @@ class MainHandler(tornado.web.RequestHandler):
 
   def get(self):
     """get function of jsonhandler"""
-    self.write("blabla")
+    self.write("getting some info")
 
   def post(self):
     """post function of json handler"""
     self.write(self.request.get_ssl_certificate())
     message = json.loads(
-        self.request.body.decode('string-escape').strip('"'))
+      self.request.body.decode('string-escape').strip('"'))
     self.sendMessage(message)  # send message to MQ
 
   def sendMessage(self, message):
     # Just for a moment
-    if message["source"] == "InstallDIRAC":
-      self.write("\nSource is correct")
+    print "sending message:" + str(message)
 
 
 class TestHandler(tornado.web.RequestHandler):
@@ -84,12 +82,12 @@ def make_app():
 
 def generate_ssl_context():
   certDir = '../testCerts/'
-  ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-  ssl_ctx.load_cert_chain(certDir+'server.crt', certDir+'server.key')
-  ssl_ctx.load_verify_locations(certDir+'CAcert.pem')
-  ssl_ctx.load_verify_locations(certDir+'user.crt')
-  ssl_ctx.verify_mode = ssl.CERT_REQUIRED
-  return ssl_ctx
+  mySSLContex = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+  mySSLContex.load_cert_chain(certDir+'server.crt', certDir+'server.key')
+  mySSLContex.load_verify_locations(certDir+'CAcert.pem')
+  mySSLContex.load_verify_locations(certDir+'user.crt')
+  mySSLContex.verify_mode = ssl.CERT_REQUIRED
+  return mySSLContex
 
 
 if __name__ == "__main__":
