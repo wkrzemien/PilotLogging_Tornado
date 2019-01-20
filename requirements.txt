@@ -8,5 +8,6 @@ pytest-cov
 coverage
 stomp.py
 requests
+tornado
 python-coveralls
 autopep8
