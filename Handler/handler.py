@@ -23,14 +23,20 @@ def valid_cert(client_cert, validDNs):
 
 def loadMQConfig(filename='mq_config.json'):
   conf = {}
-  with open(filename, "r") as myFile:
-    conf = json.load(myFile)
+  try:
+    with open(filename) as myFile:
+      conf = json.load(myFile)
+  except IOError:
+    pass
   return conf
 
 def getValidDNs(filename='Test_DN.json'):
   dnList = []
-  with open(filename, "r") as fileDN:
-    dnList = json.load(fileDN)
+  try:
+    with open(filename) as fileDN:
+      dnList = json.load(fileDN)
+  except IOError:
+    pass
   return dnList
 
 # pylint: disable = W0223, invalid-name, arguments-differ

@@ -4,7 +4,7 @@
 # pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
-from Handler.handler import getValidDNs
+from handler import getValidDNs
 
 
 class TesthandlerCertToDict(unittest.TestCase):
@@ -27,10 +27,11 @@ class TesthandlergetValidDNs(unittest.TestCase):
 
   def test_success(self):
     res = getValidDNs()
-    print res
+    self.assertTrue(res) 
 
   def test_fail(self):
     res = getValidDNs(filename='it_does_not_exist')
+    self.assertFalse(res) 
 
 
 if __name__ == '__main__':
