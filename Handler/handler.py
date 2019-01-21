@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" This is second try"""
 import ssl
 import json
 import tornado.web
@@ -22,6 +21,11 @@ def valid_cert(client_cert, validDNs):
   client_dn = cert_to_dict(client_cert)
   return client_dn in validDNs
 
+def loadMQConfig(filename='mq_config.json'):
+  conf = {}
+  with open(filename, "r") as myFile:
+    conf = json.load(myFile)
+  return conf
 
 def getValidDNs(filename='Test_DN.json'):
   dnList = []
@@ -36,8 +40,8 @@ class MainHandler(tornado.web.RequestHandler):
   """Request handler for json messages"""
   def __init__(self, *args, **kwargs):    # in args, kwargs, there will be all parameters you don't care, but needed for baseClass
     super(MainHandler, self).__init__(*args, **kwargs)
-    self.sender =  StompSender({'Host':'127.0.0.1', 'Port':'61613', 'QueuePath':'/queue/test','Username':'ala','Password':'ala' })
-
+    conf = loadMQConfig()
+    self.sender =  StompSender(conf)
   def initialize(self):
     """Auth by cert"""
     self.current_DNs = getValidDNs()
