@@ -9,7 +9,6 @@ import tornado.ioloop
 from stompSender import StompSender
 
 
-
 def cert_to_dict(cert):
   '''Transform  SSL certificate DN to dictionary'''
   cert_dict = {}
@@ -37,7 +36,7 @@ class MainHandler(tornado.web.RequestHandler):
   """Request handler for json messages"""
   def __init__(self, *args, **kwargs):    # in args, kwargs, there will be all parameters you don't care, but needed for baseClass
     super(MainHandler, self).__init__(*args, **kwargs)
-    self.sender =  StompSender({})
+    self.sender =  StompSender({'Host':'127.0.0.1', 'Port':'61613', 'QueuePath':'/queue/test','Username':'ala','Password':'ala' })
 
   def initialize(self):
     """Auth by cert"""
@@ -57,34 +56,11 @@ class MainHandler(tornado.web.RequestHandler):
     msg = self.request.body.decode('string-escape').strip('"')
     message = json.loads(msg)
     print "sending message:" + str(message)
-    self.sendMessage(msg)  # send message to MQ
-
-  def sendMessage(self, message):
-    # Just for a moment
-    self.sender.sendMessage(message, flag='info')
-
-
-class TestHandler(tornado.web.RequestHandler):
-  """Request handler for the main page of the app localhost:1027"""
-
-  def get(self):
-    """Information about server which returns with  HTTP Get"""
-    self.render("MainPage.html")
-
-  def post(self):
-    """Post function"""
-    if self.get_argument('User') == "U" and self.get_argument('Password') == "R":
-      self.write("Ok")
-      self.redirect("https://localhost:1027/random")
-    else:
-      self.write("Nope")
-
+    self.sender.sendMessage(msg)
 
 def make_app():
   """Make app with two pages main and random"""
-  return tornado.web.Application([(r"/", TestHandler),
-                                  (r"/json", MainHandler)])
-
+  return tornado.web.Application([(r"/json", MainHandler)])
 
 def generate_ssl_context():
   certDir = '../testCerts/'
