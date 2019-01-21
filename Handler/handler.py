@@ -56,7 +56,10 @@ class MainHandler(tornado.web.RequestHandler):
     msg = self.request.body.decode('string-escape').strip('"')
     message = json.loads(msg)
     print "sending message:" + str(message)
-    self.sender.sendMessage(msg)
+    self.sendMessage(msg)
+
+  def sendMessage(self, message):
+    self.sender.sendMessage(message)
 
 def make_app():
   """Make app with two pages main and random"""
