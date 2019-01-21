@@ -6,6 +6,8 @@ import json
 import tornado.web
 import tornado.httpserver
 import tornado.ioloop
+from stompSender import StompSender
+
 
 
 def cert_to_dict(cert):
@@ -33,6 +35,9 @@ def getValidDNs(filename='Test_DN.json'):
 
 class MainHandler(tornado.web.RequestHandler):
   """Request handler for json messages"""
+  def __init__(self, *args, **kwargs):    # in args, kwargs, there will be all parameters you don't care, but needed for baseClass
+    super(MainHandler, self).__init__(*args, **kwargs)
+    self.sender =  StompSender({})
 
   def initialize(self):
     """Auth by cert"""
@@ -49,13 +54,14 @@ class MainHandler(tornado.web.RequestHandler):
   def post(self):
     """post function of json handler"""
     self.write(self.request.get_ssl_certificate())
-    message = json.loads(
-      self.request.body.decode('string-escape').strip('"'))
-    self.sendMessage(message)  # send message to MQ
+    msg = self.request.body.decode('string-escape').strip('"')
+    message = json.loads(msg)
+    print "sending message:" + str(message)
+    self.sendMessage(msg)  # send message to MQ
 
   def sendMessage(self, message):
     # Just for a moment
-    print "sending message:" + str(message)
+    self.sender.sendMessage(message, flag='info')
 
 
 class TestHandler(tornado.web.RequestHandler):
