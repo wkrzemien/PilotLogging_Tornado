@@ -75,8 +75,7 @@ def make_app():
   """Make app with two pages main and random"""
   return tornado.web.Application([(r"/json", MainHandler)])
 
-def generate_ssl_context():
-  certDir = '../testCerts/'
+def generate_ssl_context(certDir='../testCerts/'):
   mySSLContex = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
   mySSLContex.load_cert_chain(certDir+'server.crt', certDir+'server.key')
   mySSLContex.load_verify_locations(certDir+'CAcert.pem')
