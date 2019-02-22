@@ -42,3 +42,4 @@ test.gmtime_adj_notAfter(24*3600)
 test.sign(key_CA, "sha1")
 with open('tc/test_secundo.pem', 'wb') as test_cert:
     test_cert.write(dump_certificate(FILETYPE_PEM, test.to_cryptography()))
+print(test.get_subject())

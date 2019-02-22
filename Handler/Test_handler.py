@@ -23,11 +23,12 @@ class TesthandlerCertToDict(unittest.TestCase):
         http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)
         http_server.listen(1027)
         tornado.ioloop.IOLoop.current().start()
-        URL = 'https://localhost:1027/json'
+
     def tearDown(self):
         pass
 
     def test_success(self):
+        URL = 'https://localhost:1027/json'
         certDir = '../tc/'
         client_cert = os.path.join(certDir+'user.crt')
         client_key = os.path.join(certDir+'user.key')
