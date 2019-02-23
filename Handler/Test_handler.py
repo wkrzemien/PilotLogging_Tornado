@@ -4,39 +4,38 @@
 # pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
-import requests
-from handler import *
-from py_cert import *
+from handler import extract_DN, getValidDNs, valid_cert
 
 
-class TesthandlerCertToDict(unittest.TestCase):
+class Testhandler_extract_DN(unittest.TestCase):
     def setUp(self):
-        CA_subj = {'Country':u'PL', 'State':u'Mazowieckie', 'Locality':u'Warszawa',
-                   'Organization':u'NCBJ', 'OU':u'Student', 'CN':u'CA'}
-        test_subj = {'Country':u'PL', 'State':u'Mazowieckie', 'Locality':u'Warszawa',
-                     'Organization':u'NCBJ', 'OU':u'Student', 'CN':u'test'}
-        key_CA, CA_subj, CA_crt = create_CA('tc/CAcert.pem', 'tc/CAkey.pem', CA_subj)
-        test_key, test_crt = create_test_cert('tc/user.crt', 'tc/user.key', key_CA, CA_subj, test_subj)
-        test_key, test_crt = create_test_cert('tc/server.crt', 'tc/server.key', key_CA, CA_subj, test_subj)
-        app = make_app()
-        ssl_ctx = generate_ssl_context('../tc/')
-        http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)
-        http_server.listen(1027)
-        tornado.ioloop.IOLoop.current().start()
-
+        pass
     def tearDown(self):
         pass
-
     def test_success(self):
-        URL = 'https://localhost:1027/json'
-        certDir = '../tc/'
-        client_cert = os.path.join(certDir+'user.crt')
-        client_key = os.path.join(certDir+'user.key')
-        CAcert = os.path.join(certDir+'CAcert.pem'
-        r1 = requests.get(URL, cert=(client_cert, client_key), verify=CAcert)
-        pass
-
-class TesthandlergetValidDNs(unittest.TestCase):
+        cert = {'issuer': ((('countryName', 'IL'),),
+                           (('organizationName', 'StartCom Ltd.'),),
+                           (('organizationalUnitName',
+                             'Secure Digital Certificate Signing'),),
+                           (('commonName',
+                             'StartCom Class 2 Primary Intermediate Server CA'),)),
+                'notAfter': 'Nov 22 08:15:19 2013 GMT',
+                'notBefore': 'Nov 21 03:09:52 2011 GMT',
+                'serialNumber': '95F0',
+                'subject': ((('description', '571208-SLe257oHY9fVQ07Z'),),
+                            (('countryName', 'US'),),
+                            (('stateOrProvinceName', 'California'),),
+                            (('localityName', 'San Francisco'),),
+                            (('organizationName', 'Electronic Frontier Foundation, Inc.'),),
+                            (('commonName', '*.eff.org'),),
+                            (('emailAddress', 'hostmaster@eff.org'),)),
+                'subjectAltName': (('DNS', '*.eff.org'), ('DNS', 'eff.org')),
+                'version': 3}
+        test_subject = cert['subject']
+        for a in test_subject:
+            key, value = a[0][0], a[0][1]
+            self.assertEqual(value, extract_DN(cert)[key])
+class Testhandler_getValidDNs(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -51,10 +50,58 @@ class TesthandlergetValidDNs(unittest.TestCase):
         res = getValidDNs(filename='it_does_not_exist')
         self.assertFalse(res)
 
+class Testhandler_valid_cert(unittest.TestCase):
+    def setUp(self):
+        pass
+    def tearDown(self):
+        pass
+    def test_success(self):
+        cert = {'issuer': ((('countryName', 'IL'),),
+                           (('organizationName', 'StartCom Ltd.'),),
+                           (('organizationalUnitName',
+                             'Secure Digital Certificate Signing'),),
+                           (('commonName',
+                             'StartCom Class 2 Primary Intermediate Server CA'),)),
+                'notAfter': 'Nov 22 08:15:19 2013 GMT',
+                'notBefore': 'Nov 21 03:09:52 2011 GMT',
+                'serialNumber': '95F0',
+                'subject': ((('countryName', 'PL'),),
+                            (('stateOrProvinceName', 'MAZOWIECKIE'),),
+                            (('localityName', 'Krakow'),),
+                            (('organizationName', 'Some_organization'),),
+                            (('organizationalUnitName', 'Unit'),)
+                           ),
+                'version': 3}
+        valid_DN = getValidDNs()
+        res = valid_cert(cert, valid_DN)
+        self.assertTrue(res)
+    def test_fail(self):
+        cert = {'issuer': ((('countryName', 'IL'),),
+                           (('organizationName', 'StartCom Ltd.'),),
+                           (('organizationalUnitName',
+                             'Secure Digital Certificate Signing'),),
+                           (('commonName',
+                             'StartCom Class 2 Primary Intermediate Server CA'),)),
+                'notAfter': 'Nov 22 08:15:19 2013 GMT',
+                'notBefore': 'Nov 21 03:09:52 2011 GMT',
+                'serialNumber': '95F0',
+                'subject': ((('description', '571208-SLe257oHY9fVQ07Z'),),
+                            (('countryName', 'US'),),
+                            (('stateOrProvinceName', 'California'),),
+                            (('localityName', 'San Francisco'),),
+                            (('organizationName', 'Electronic Frontier Foundation, Inc.'),),
+                            (('commonName', '*.eff.org'),),
+                            (('emailAddress', 'hostmaster@eff.org'),)),
+                'subjectAltName': (('DNS', '*.eff.org'), ('DNS', 'eff.org')),
+                'version': 3}
+        valid_DN = getValidDNs()
+        res = valid_cert(cert, valid_DN)
+        self.assertFalse(res)
+
+
 
 if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase(
-      TesthandlerCertToDict)
-  suite.addTest(
-      unittest.defaultTestLoader.loadTestsFromTestCase(TesthandlergetValidDNs))
-  testResult = unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(Testhandler_extract_DN)
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(Testhandler_getValidDNs))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(Testhandler_valid_cert))
+    testResult = unittest.TextTestRunner(verbosity=2).run(suite)

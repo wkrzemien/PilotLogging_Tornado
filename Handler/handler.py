@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import ssl
@@ -8,8 +9,9 @@ import tornado.ioloop
 from stompSender import StompSender
 
 
-def cert_to_dict(cert):
-  '''Transform  SSL certificate DN to dictionary'''
+def extract_DN(cert):
+  '''Extract  SSL certificate DN to dictionary
+     cert - dictionary, which is returned by ssl.getpeercert()'''
   cert_dict = {}
   for i in range(len(cert['subject'])):
     cert_dict.update(dict(cert['subject'][i]))
@@ -18,7 +20,7 @@ def cert_to_dict(cert):
 
 def valid_cert(client_cert, validDNs):
   '''Comparing client DN in dictionary form to DN which are in text file'''
-  client_dn = cert_to_dict(client_cert)
+  client_dn = extract_DN(client_cert)
   return client_dn in validDNs
 
 def loadMQConfig(filename='mq_config.json'):
@@ -51,7 +53,7 @@ class MainHandler(tornado.web.RequestHandler):
   def initialize(self):
     """Auth by cert"""
     self.current_DNs = getValidDNs()
-    client_cert = self.request.get_ssl_certificate()
+    client_cert = self.request.get_ssl_certificate()# return dict
     if not valid_cert(client_cert, validDNs=self.current_DNs):
       print "This certificate is not authorized!"
       self.finish()
