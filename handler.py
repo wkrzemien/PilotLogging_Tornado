@@ -42,7 +42,7 @@ def getValidDNs_from_file(filename='Test_DN.json'):
     pass
   return dnList
 
-def getValidDNs_from_url(url)
+def getValidDNs_from_url(url):
   request = requests.get(url, verify=False)
   PilotList = request.json()
   DNlist = PilotList['DNs'].values()
