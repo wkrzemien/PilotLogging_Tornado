@@ -3,6 +3,7 @@
 # -*- coding: utf-8 -*-
 import ssl
 import json
+import requests
 import tornado.web
 import tornado.httpserver
 import tornado.ioloop
@@ -32,7 +33,7 @@ def loadMQConfig(filename='mq_config.json'):
     pass
   return conf
 
-def getValidDNs(filename='Test_DN.json'):
+def getValidDNs_from_file(filename='Test_DN.json'):
   dnList = []
   try:
     with open(filename) as fileDN:
@@ -41,6 +42,11 @@ def getValidDNs(filename='Test_DN.json'):
     pass
   return dnList
 
+def getValidDNs_from_url(url):
+  request = requests.get(url, verify=False)
+  PilotList = request.json()
+  DNlist = PilotList['DNs'].values()
+  return dnList
 # pylint: disable = W0223, invalid-name, arguments-differ
 
 
@@ -52,7 +58,7 @@ class MainHandler(tornado.web.RequestHandler):
     self.sender =  StompSender(conf)
   def initialize(self):
     """Auth by cert"""
-    self.current_DNs = getValidDNs()
+    self.current_DNs = getValidDNs_from_file()
     client_cert = self.request.get_ssl_certificate()# return dict
     if not valid_cert(client_cert, validDNs=self.current_DNs):
       print "This certificate is not authorized!"
@@ -74,7 +80,7 @@ class MainHandler(tornado.web.RequestHandler):
     self.sender.sendMessage(message)
 
 def make_app():
-  """Make app with two pages main and random"""
+  """Make app with page"""
   return tornado.web.Application([(r"/json", MainHandler)])
 
 def generate_ssl_context(certDir='../testCerts/'):
