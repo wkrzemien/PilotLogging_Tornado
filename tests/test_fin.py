@@ -12,6 +12,8 @@ client_key = os.path.join(certDir+'user.key')
 CAcert = os.path.join(certDir+'CAcert.pem')
 
 URL = 'https://localhost:1027'
+receiver_host='localhost'
+
 msg = {
   'status': 'info',
   'phase': 'Installing',
@@ -30,7 +32,7 @@ print r2.text
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost', port=5672))
+connection = pika.BlockingConnection(pika.ConnectionParameters(host=receiver_host, port=5672))
 channel = connection.channel()
 channel.queue_declare(queue='test', durable=True)
 channel.basic_consume(queue='test',
