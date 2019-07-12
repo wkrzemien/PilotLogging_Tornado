@@ -2,17 +2,16 @@
 import os
 import json
 import requests
+import pika
 # pylint: disable = invalid-name
+
+
 certDir = '../testCerts/'
 client_cert = os.path.join(certDir+'user.crt')
 client_key = os.path.join(certDir+'user.key')
 CAcert = os.path.join(certDir+'CAcert.pem')
 
-URL = 'https://localhost:1027/json'
-
-r1 = requests.get(URL, cert=(client_cert, client_key), verify=CAcert)
-print r1.text
-
+URL = 'https://localhost:1027'
 msg = {
   'status': 'info',
   'phase': 'Installing',

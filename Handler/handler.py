@@ -82,7 +82,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 def make_app():
   """Make app with page"""
-  return tornado.web.Application([(r"/json", MainHandler)])
+  return tornado.web.Application([(r"/", MainHandler)])
 
 def generate_ssl_context(certDir='../testCerts/'):
   mySSLContex = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
