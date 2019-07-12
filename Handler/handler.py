@@ -73,11 +73,12 @@ class MainHandler(tornado.web.RequestHandler):
     self.write(self.request.get_ssl_certificate())
     msg = self.request.body.decode('string-escape').strip('"')
     message = json.loads(msg)
-    print "sending message:" + str(message)
     self.sendMessage(msg)
 
   def sendMessage(self, message):
+    print "sending message:" + str(message)
     self.sender.sendMessage(message)
+    print "fin"
 
 def make_app():
   """Make app with page"""

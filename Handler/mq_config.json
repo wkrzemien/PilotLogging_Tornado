@@ -1,3 +1,1 @@
-{"Host":"127.0.0.1", "Port":"61613", "QueuePath":"/queue/test","Username":"ala","Password":"ala" }
-
-
+{"Host":"127.0.0.1", "Port":"61613", "QueuePath":"/queue/test","Username":"guest","Password":"guest" }

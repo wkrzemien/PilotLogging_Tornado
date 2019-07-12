@@ -4,7 +4,7 @@
 # pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
-from handler import extract_DN, getValidDNs, valid_cert
+from handler import extract_DN, getValidDNs_from_file, valid_cert
 
 
 class Testhandler_extract_DN(unittest.TestCase):
@@ -35,7 +35,7 @@ class Testhandler_extract_DN(unittest.TestCase):
         for a in test_subject:
             key, value = a[0][0], a[0][1]
             self.assertEqual(value, extract_DN(cert)[key])
-class Testhandler_getValidDNs(unittest.TestCase):
+class Testhandler_getValidDNs_from_file(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -43,11 +43,11 @@ class Testhandler_getValidDNs(unittest.TestCase):
         pass
 
     def test_success(self):
-        res = getValidDNs()
+        res = getValidDNs_from_file()
         self.assertTrue(res)
 
     def test_fail(self):
-        res = getValidDNs(filename='it_does_not_exist')
+        res = getValidDNs_from_file(filename='it_does_not_exist')
         self.assertFalse(res)
 
 class Testhandler_valid_cert(unittest.TestCase):
@@ -72,7 +72,7 @@ class Testhandler_valid_cert(unittest.TestCase):
                             (('organizationalUnitName', 'Unit'),)
                            ),
                 'version': 3}
-        valid_DN = getValidDNs()
+        valid_DN = getValidDNs_from_file()
         res = valid_cert(cert, valid_DN)
         self.assertTrue(res)
     def test_fail(self):
@@ -94,7 +94,7 @@ class Testhandler_valid_cert(unittest.TestCase):
                             (('emailAddress', 'hostmaster@eff.org'),)),
                 'subjectAltName': (('DNS', '*.eff.org'), ('DNS', 'eff.org')),
                 'version': 3}
-        valid_DN = getValidDNs()
+        valid_DN = getValidDNs_from_file()
         res = valid_cert(cert, valid_DN)
         self.assertFalse(res)
 
@@ -102,6 +102,6 @@ class Testhandler_valid_cert(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(Testhandler_extract_DN)
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(Testhandler_getValidDNs))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(Testhandler_getValidDNs_from_file))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(Testhandler_valid_cert))
     testResult = unittest.TextTestRunner(verbosity=2).run(suite)
