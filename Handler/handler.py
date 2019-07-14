@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
 import ssl
@@ -95,7 +94,7 @@ def generate_ssl_context(certDir='../testCerts/'):
 
 if __name__ == "__main__":
   define("host", default="localhost", help="app host", type=str)
-  define("port", default=3000, help="app port", type=int)
+  define("port", default=1027, help="app port", type=int)
   options.parse_command_line()
   print "STARTING TORNADO SERVER!"
   app = make_app()
