@@ -11,3 +11,4 @@ requests
 tornado
 python-coveralls
 autopep8
+pika

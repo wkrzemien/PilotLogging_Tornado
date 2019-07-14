@@ -1,0 +1,9 @@
+ps aux |grep rabbit
+netstat -ntl
+61614 for stomp ssl, 61613 for stomp tcp
+sudo rabbitmqclt status
+sudo rabbitmqctl list_queues name messages_ready messages_unacknowledged
+http://localhost:15672/
+guest
+guest
+sudo rabbitmqctl set_user_tags guest administrator

@@ -1,15 +1,18 @@
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import ssl
 import json
+import requests
 import tornado.web
 import tornado.httpserver
 import tornado.ioloop
 from stompSender import StompSender
 
 
-def cert_to_dict(cert):
-  '''Transform  SSL certificate DN to dictionary'''
+def extract_DN(cert):
+  '''Extract  SSL certificate DN to dictionary
+     cert - dictionary, which is returned by ssl.getpeercert()'''
   cert_dict = {}
   for i in range(len(cert['subject'])):
     cert_dict.update(dict(cert['subject'][i]))
@@ -18,7 +21,7 @@ def cert_to_dict(cert):
 
 def valid_cert(client_cert, validDNs):
   '''Comparing client DN in dictionary form to DN which are in text file'''
-  client_dn = cert_to_dict(client_cert)
+  client_dn = extract_DN(client_cert)
   return client_dn in validDNs
 
 def loadMQConfig(filename='mq_config.json'):
@@ -30,7 +33,7 @@ def loadMQConfig(filename='mq_config.json'):
     pass
   return conf
 
-def getValidDNs(filename='Test_DN.json'):
+def getValidDNs_from_file(filename='Test_DN.json'):
   dnList = []
   try:
     with open(filename) as fileDN:
@@ -39,6 +42,11 @@ def getValidDNs(filename='Test_DN.json'):
     pass
   return dnList
 
+def getValidDNs_from_url(url):
+  request = requests.get(url, verify=False)
+  PilotList = request.json()
+  DNlist = PilotList['DNs'].values()
+  return dnList
 # pylint: disable = W0223, invalid-name, arguments-differ
 
 
@@ -50,8 +58,8 @@ class MainHandler(tornado.web.RequestHandler):
     self.sender =  StompSender(conf)
   def initialize(self):
     """Auth by cert"""
-    self.current_DNs = getValidDNs()
-    client_cert = self.request.get_ssl_certificate()
+    self.current_DNs = getValidDNs_from_file()
+    client_cert = self.request.get_ssl_certificate()# return dict
     if not valid_cert(client_cert, validDNs=self.current_DNs):
       print "This certificate is not authorized!"
       self.finish()
@@ -65,18 +73,18 @@ class MainHandler(tornado.web.RequestHandler):
     self.write(self.request.get_ssl_certificate())
     msg = self.request.body.decode('string-escape').strip('"')
     message = json.loads(msg)
-    print "sending message:" + str(message)
     self.sendMessage(msg)
 
   def sendMessage(self, message):
+    print "sending message:" + str(message)
     self.sender.sendMessage(message)
+    print "fin"
 
 def make_app():
-  """Make app with two pages main and random"""
-  return tornado.web.Application([(r"/json", MainHandler)])
+  """Make app with page"""
+  return tornado.web.Application([(r"/", MainHandler)])
 
-def generate_ssl_context():
-  certDir = '../testCerts/'
+def generate_ssl_context(certDir='../testCerts/'):
   mySSLContex = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
   mySSLContex.load_cert_chain(certDir+'server.crt', certDir+'server.key')
   mySSLContex.load_verify_locations(certDir+'CAcert.pem')
