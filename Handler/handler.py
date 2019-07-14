@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 import ssl
 import json
@@ -102,3 +101,4 @@ if __name__ == "__main__":
   http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)
   http_server.listen(options.port)
   tornado.ioloop.IOLoop.current().start()
+  print (options.port)
