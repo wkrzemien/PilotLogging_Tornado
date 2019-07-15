@@ -55,6 +55,7 @@ class MainHandler(tornado.web.RequestHandler):
     super(MainHandler, self).__init__(*args, **kwargs)
     conf = loadMQConfig()
     self.sender =  StompSender(conf)
+
   def initialize(self):
     """Auth by cert"""
     self.current_DNs = getValidDNs_from_file()
@@ -77,28 +78,32 @@ class MainHandler(tornado.web.RequestHandler):
   def sendMessage(self, message):
     print "sending message:" + str(message)
     self.sender.sendMessage(message)
-    print "fin"
 
 def make_app():
   """Make app with page"""
   return tornado.web.Application([(r"/", MainHandler)])
 
-def generate_ssl_context(certDir='../testCerts/'):
+def generate_ssl_context(server_cert, server_key, ca_cert):
   mySSLContex = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-  mySSLContex.load_cert_chain(certDir+'server.crt', certDir+'server.key')
-  mySSLContex.load_verify_locations(certDir+'CAcert.pem')
-  mySSLContex.load_verify_locations(certDir+'user.crt')
+  mySSLContex.load_cert_chain(server_cert, server_key)
+  mySSLContex.load_verify_locations(ca_cert)
   mySSLContex.verify_mode = ssl.CERT_REQUIRED
   return mySSLContex
 
 if __name__ == "__main__":
   define("host", default="localhost", help="app host", type=str)
-  define("port", default=1027, help="app port", type=int)
+  define("port", default=8888, help="app port", type=int)
+  define("certPath", default="../testCerts/", help="path to certificates", type=str)
   options.parse_command_line()
-  print "STARTING TORNADO SERVER!"
+  print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(options.host, options.port)
+  print "Certification path:%s"%(options.certPath)
+
+  #todo it must be taken from some config file
+  server_cert = options.certPath + 'test.crt'
+  server_key = options.certPath + 'test.key'
+  ca_cert = options.certPath +'CAcert.pem'
   app = make_app()
-  ssl_ctx = generate_ssl_context()
+  ssl_ctx = generate_ssl_context(server_cert,server_key, ca_cert)
   http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)
   http_server.listen(options.port)
   tornado.ioloop.IOLoop.current().start()
-  print (options.port)
