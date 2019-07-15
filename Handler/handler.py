@@ -1,6 +1,4 @@
-
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+import sys
 import ssl
 import json
 import requests
@@ -8,6 +6,7 @@ import tornado.web
 import tornado.httpserver
 import tornado.ioloop
 from stompSender import StompSender
+from tornado.options import options, define
 
 
 def extract_DN(cert):
@@ -44,9 +43,9 @@ def getValidDNs_from_file(filename='Test_DN.json'):
 
 def getValidDNs_from_url(url):
   request = requests.get(url, verify=False)
-  PilotList = request.json()
-  DNlist = PilotList['DNs'].values()
-  return dnList
+  pilotList = request.json()
+  dNlist = pilotList['DNs'].values()
+  return dNlist
 # pylint: disable = W0223, invalid-name, arguments-differ
 
 
@@ -92,11 +91,14 @@ def generate_ssl_context(certDir='../testCerts/'):
   mySSLContex.verify_mode = ssl.CERT_REQUIRED
   return mySSLContex
 
-
 if __name__ == "__main__":
+  define("host", default="localhost", help="app host", type=str)
+  define("port", default=1027, help="app port", type=int)
+  options.parse_command_line()
   print "STARTING TORNADO SERVER!"
   app = make_app()
   ssl_ctx = generate_ssl_context()
   http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)
-  http_server.listen(1027)
+  http_server.listen(options.port)
   tornado.ioloop.IOLoop.current().start()
+  print (options.port)
