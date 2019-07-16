@@ -2,11 +2,9 @@
 import os
 import json
 import requests
-#import pika
 import sys
 import stomp
-# pylint: disable = invalid-name
-
+import time
 
 certDir = '../testCerts/'
 client_cert = os.path.join(certDir+'user.crt')
@@ -31,17 +29,6 @@ r2 = requests.post(URL, cert=(client_cert, client_key),
                    verify=CAcert, json=json_msg)
 print r2.text
 
-#def callback(ch, method, properties, body):
-#    print(" [x] Received %r" % body)
-#
-#connection = pika.BlockingConnection(pika.ConnectionParameters(host=receiver_host, port=5672))
-#channel = connection.channel()
-#channel.queue_declare(queue='test', durable=True)
-#channel.basic_consume(queue='test',
-#                      auto_ack=True,
-#                      on_message_callback=callback)
-#
-#channel.start_consuming()
 
 
 class MyListener(stomp.ConnectionListener):
@@ -54,9 +41,7 @@ conn = stomp.Connection()
 conn.set_listener('', MyListener())
 conn.start()
 conn.connect('guest', 'guest', wait=True)
-
 print "Start of receiving"
-
+conn.subscribe(destination='/queue/test', id=1, ack='auto')
 while True:
-    conn.subscribe(destination='/queue/test', id=1, ack='auto')
-
+    time.sleep(0.2)
