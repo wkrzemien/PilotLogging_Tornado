@@ -147,7 +147,7 @@ if __name__ == "__main__":
             else:
                 raise ConfigError('Certificate isn`t signed by provided CA')
     except IOError:
-        print 'I can`t find config file, please check it'
+        raise IOError('I can`t find config file, please check it')
 
     print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(config_json['Tornado_host'], config_json['Tornado_port'])
 
