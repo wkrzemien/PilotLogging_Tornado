@@ -30,16 +30,6 @@ class ConfigError(Exception):
     # store_context = crypto.X509StoreContext(store, cert)
     # return True if store_context.verify_certificate() is None else False
 
-
-def readConfigFile(configuration_file):
-    """Read config file and return dict of params"""
-    try:
-        with open(configuration_file, 'r') as config_file:
-            params = json.load(config_file)
-            return params
-    except IOError:
-        raise IOError('I can`t find config file, please check it')
-
 def areParamsValid(config_json):
     """Check if cert from params was signed by CA
        and if hostname from params matches cert`s CN"""
@@ -158,9 +148,6 @@ def generate_ssl_context(server_certificate, server_key, ca_cert):
     return mySSLContex
 
 if __name__ == "__main__":
-
-    # params = readConfigFile('handler_config.json')
-
 
     define("host", default='localhost', help="tornado host", type=str)
     define("port", default=1027, help="tornado port", type=int)
