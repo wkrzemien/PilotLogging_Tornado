@@ -152,7 +152,7 @@ def main(argv):
   define("mq_host", default="127.0.0.1", help="MQ server host", type=str)
   define("mq_port", default=61613, help="MQ server port", type=int)
   define("mq_queue", default="/queue/test", help="MQ queue name", type=str)
-  define("mq_username", default='guest', help="MQ username", type=str)
+  define("mq_user", default='guest', help="MQ username", type=str)
   define("mq_password", default='guest', help="MQ password", type=str)
 
   define("dn_filename", default='Test_DN.json', help="path to file with valid DNs", type=str)
