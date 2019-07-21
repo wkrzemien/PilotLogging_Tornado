@@ -108,10 +108,9 @@ class MainHandler(tornado.web.RequestHandler):
     """Auth by cert"""
     client_cert = self.request.get_ssl_certificate()
     client_cert_bin = self.request.get_ssl_certificate(True)
-    print "client_cert %s" %str(client_cert)
     if not valid_cert(client_cert, validDNs=self._currentValidCerts):
       print "This certificate is not authorized!"
-        # self.finish()
+      self.finish()
 
   def get(self):
     """get function of jsonhandler"""
