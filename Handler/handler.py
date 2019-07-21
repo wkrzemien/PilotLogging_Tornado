@@ -167,7 +167,7 @@ def main(argv):
   print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(options.host, options.port)
 
   app = make_app()
-  ssl_ctx = generate_ssl_context(options.server_cert, options.server_key, options.CA_cert)
+  ssl_ctx = generate_ssl_context(options.server_cert, options.server_key, options.ca_cert)
   http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)
   http_server.listen(options.port)
   tornado.ioloop.IOLoop.current().start()
