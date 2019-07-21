@@ -70,19 +70,14 @@ def valid_cert(client_cert, validDNs):
     print "client_dn %s"% str(client_dn)
     return client_dn in validDNs
 
-def loadMQConfig(filename='handler_config.json'):
-    """This function loads configuration for MQ from json file"""
+def generateMQConfig(old_conf):
+    """This function generates configuration from old one"""
     conf = {}
-    try:
-        with open(filename) as config_file:
-            pre_conf = json.load(config_file)
-            conf['Host'] = pre_conf['mq_host']
-            conf['Port'] = pre_conf['mq_port']
-            conf['QueuePath'] = pre_conf['mq_queue']
-            conf['Username'] = pre_conf['mq_user']
-            conf['Password'] = pre_conf['mq_password']
-    except IOError:
-        pass
+    conf['Host'] = old_conf['mq_host']
+    conf['Port'] = old_conf['mq_port']
+    conf['QueuePath'] = old_conf['mq_queue']
+    conf['Username'] = old_conf['mq_user']
+    conf['Password'] = old_conf['mq_password']
     return conf
 
 def getValidDNs_from_file(filename='Test_DN.json'):
@@ -104,11 +99,12 @@ def getValidDNs_from_url(url):
   # pylint: disable = W0223, invalid-name, arguments-differ
 
 class MainHandler(tornado.web.RequestHandler):
+
     """Request handler for json messages"""
     def __init__(self, *args, **kwargs):# in args, kwargs, there will be all parameters you don't care, but needed for baseClass
         super(MainHandler, self).__init__(*args, **kwargs)
-        conf = loadMQConfig()
-        self.sender = StompSender(conf)
+        self._configParams = options.as_dict()
+        self.sender = StompSender(generateMQConfig(self._configParams))
 
     def initialize(self):
         """Auth by cert"""
@@ -173,8 +169,8 @@ if __name__ == "__main__":
     print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(options.host, options.port)
     print (str(options.as_dict()))
 
-    # app = make_app()
-    # ssl_ctx = generate_ssl_context(options.server_cert, options.server_key, options.CA_cert)
-    # http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)
-    # http_server.listen(options.port)
-    # tornado.ioloop.IOLoop.current().start()
+    app = make_app()
+    ssl_ctx = generate_ssl_context(options.server_cert, options.server_key, options.CA_cert)
+    http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)
+    http_server.listen(options.port)
+    tornado.ioloop.IOLoop.current().start()
