@@ -151,7 +151,7 @@ def main(argv):
 
   define("mq_host", default="127.0.0.1", help="MQ server host", type=str)
   define("mq_port", default=61613, help="MQ server port", type=int)
-  define("mq_queuePath", default="/queue/test", help="MQ queue name", type=str)
+  define("mq_queue", default="/queue/test", help="MQ queue name", type=str)
   define("mq_username", default='guest', help="MQ username", type=str)
   define("mq_password", default='guest', help="MQ password", type=str)
 
