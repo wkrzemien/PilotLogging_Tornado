@@ -1,0 +1,11 @@
+host= "localhost"
+port = 1027
+ca_cert = "../testCerts/CAcert.pem"
+server_cert = "../testCerts/server.crt"
+server_key = "../testCerts/server.key"
+mq_host = "127.0.0.1" 
+mq_port = 61613 
+mq_queue = "/queue/test"
+mq_user = "guest"
+mq_password = "guest" 
+dn_filename = "Test_DN.json"
