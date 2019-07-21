@@ -159,15 +159,25 @@ def generate_ssl_context(server_certificate, server_key, ca_cert):
 
 if __name__ == "__main__":
 
-    params = readConfigFile('handler_config.json')
+    # params = readConfigFile('handler_config.json')
 
-    areParamsValid(params)
+    # areParamsValid(params)
 
-    define("host", default=params['host'], help="app host", type=str)
-    define("port", default=params['port'], help="app port", type=int)
-    define("server_cert", default=params['server_cert'], help="server certificate", type=str)
-    define("server_key", default=params['server_key'], help="server key", type=str)
-    define("CA_cert", default=params['ca_cert'], help="CA certificate", type=str)
+    define("host", default='localhost', help="tornado host", type=str)
+    define("port", default=1027, help="tornado port", type=int)
+
+    define("server_cert", default="../testCerts/server.crt", help="server certificate", type=str)
+    define("server_key", default="../testCerts/server.key", help="server key", type=str)
+    define("CA_cert", default="../testCerts/CAcert.pem", help="CA certificate", type=str)
+
+    define("mq_host", default="127.0.0.1", help="MQ server host", type=str)
+    define("mq_port", default=61613, help="MQ server port", type=int)
+    define("mq_queuePath", default="/queue/test", help="MQ queue name", type=str)
+    define("mq_username", default='guest', help="MQ username", type=str)
+    define("mq_password", default='guest', help="MQ password", type=str)
+
+    define("config", type=str, help="path to config file",
+       callback=lambda path: options.parse_config_file(path, final=False))
     options.parse_command_line()
 
     print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(options.host, options.port)
