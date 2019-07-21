@@ -21,7 +21,6 @@ class ConfigError(Exception):
   def __str__(self):
     return repr(self.value)
 
-
 # def verify(ca, cert):
     # """This functions checks two certificates,
        # which are OpenSSL.crypto.X509 variables
@@ -61,7 +60,6 @@ def extract_DN(cert):
   for i in range(len(cert['subject'])):
     cert_dict.update(dict(cert['subject'][i]))
   return cert_dict
-
 
 def valid_cert(client_cert, validDNs):
   '''Comparing client DN in dictionary form to DN which are in text file'''
@@ -103,23 +101,26 @@ class MainHandler(tornado.web.RequestHandler):
   def __init__(self, *args, **kwargs):
     super(MainHandler, self).__init__(*args, **kwargs)
     self._configParams = options.as_dict()
-    self.sender = StompSender(generateMQConfig(self._configParams))
+    self._sender = StompSender(generateMQConfig(self._configParams))
+    self._currentValidCerts = getValidDNs_from_file(filename = self._configParams["dn_filename"])
 
   def initialize(self):
     """Auth by cert"""
-    self.current_DNs = getValidDNs_from_file()
-    # client_cert = self.request.get_ssl_certificate()# return dict
-    # print "client_cert %s" %str(client_cert)
-    # if not valid_cert(client_cert, validDNs=self.current_DNs):
-        # print "This certificate is not authorized!"
+    client_cert = self.request.get_ssl_certificate()
+    client_cert_bin = self.request.get_ssl_certificate(True)
+    print "client_cert %s" %str(client_cert)
+    if not valid_cert(client_cert, validDNs=self._currentValidCerts):
+      print "This certificate is not authorized!"
         # self.finish()
 
   def get(self):
     """get function of jsonhandler"""
+    print "get?"
     self.write("getting some info")
 
   def post(self):
     """post function of json handler"""
+    print "post?"
     self.write(self.request.get_ssl_certificate())
     msg = self.request.body.decode('string-escape').strip('"')
     self.sendMessage(msg)
@@ -127,7 +128,7 @@ class MainHandler(tornado.web.RequestHandler):
   def sendMessage(self, message):
     """This method sends message to mq"""
     print "sending message:" + str(message)
-    self.sender.sendMessage(message)
+    self._sender.sendMessage(message)
 
 def make_app():
   """Make app with page"""
