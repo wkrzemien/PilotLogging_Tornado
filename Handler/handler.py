@@ -161,7 +161,6 @@ if __name__ == "__main__":
 
     # params = readConfigFile('handler_config.json')
 
-    # areParamsValid(params)
 
     define("host", default='localhost', help="tornado host", type=str)
     define("port", default=1027, help="tornado port", type=int)
@@ -176,14 +175,19 @@ if __name__ == "__main__":
     define("mq_username", default='guest', help="MQ username", type=str)
     define("mq_password", default='guest', help="MQ password", type=str)
 
+    define("dn_filename", default='Test_DN.json', help="path to file with valid DNs", type=str)
+
     define("config", type=str, help="path to config file",
        callback=lambda path: options.parse_config_file(path, final=False))
     options.parse_command_line()
 
-    print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(options.host, options.port)
+    # areParamsValid(options.as_dict())
 
-    app = make_app()
-    ssl_ctx = generate_ssl_context(options.server_cert, options.server_key, options.CA_cert)
-    http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)
-    http_server.listen(options.port)
-    tornado.ioloop.IOLoop.current().start()
+    print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(options.host, options.port)
+    print (str(options.as_dict()))
+
+    # app = make_app()
+    # ssl_ctx = generate_ssl_context(options.server_cert, options.server_key, options.CA_cert)
+    # http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx)
+    # http_server.listen(options.port)
+    # tornado.ioloop.IOLoop.current().start()
