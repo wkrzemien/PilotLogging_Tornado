@@ -10,7 +10,7 @@ import tornado.web
 import tornado.httpserver
 import tornado.ioloop
 from tornado.options import options, define
-from OpenSSL import crypto
+# from OpenSSL import crypto
 from stompSender import StompSender
 
 class ConfigError(Exception):
@@ -21,14 +21,14 @@ class ConfigError(Exception):
         return repr(self.value)
 
 
-def verify(ca, cert):
-    """This functions checks two certificates,
-       which are OpenSSL.crypto.X509 variables
-    """
-    store = crypto.X509Store()
-    store.add_cert(ca)
-    store_context = crypto.X509StoreContext(store, cert)
-    return True if store_context.verify_certificate() is None else False
+# def verify(ca, cert):
+    # """This functions checks two certificates,
+       # which are OpenSSL.crypto.X509 variables
+    # """
+    # store = crypto.X509Store()
+    # store.add_cert(ca)
+    # store_context = crypto.X509StoreContext(store, cert)
+    # return True if store_context.verify_certificate() is None else False
 
 
 def readConfigFile(configuration_file):
@@ -48,20 +48,20 @@ def areParamsValid(config_json):
     CA_cert_file = open(config_json['ca_cert'])
     server_cert_data = server_cert_file.read()
     CA_cert_data = CA_cert_file.read()
-    server_cert = crypto.load_certificate(crypto.FILETYPE_PEM, server_cert_data)
-    CA_cert = crypto.load_certificate(crypto.FILETYPE_PEM, CA_cert_data)
-    server_DN_crypto = server_cert.get_subject()
-    server_DN = dict(server_DN_crypto.get_components())
-    if server_DN['CN'] != app_host:
-        print 'Hostname:'
-        print app_host
-        print 'Certificate CN:'
-        print server_DN['CN']
-        raise ConfigError('Hostname doesn`t match certificates CN')
-    elif verify(CA_cert, server_cert) != True:
-        raise ConfigError('Certificate isn`t signed by provided CA')
-    else:
-        return True
+    # server_cert = crypto.load_certificate(crypto.FILETYPE_PEM, server_cert_data)
+    # CA_cert = crypto.load_certificate(crypto.FILETYPE_PEM, CA_cert_data)
+    # server_DN_crypto = server_cert.get_subject()
+    # server_DN = dict(server_DN_crypto.get_components())
+    # if server_DN['CN'] != app_host:
+        # print 'Hostname:'
+        # print app_host
+        # print 'Certificate CN:'
+        # print server_DN['CN']
+        # raise ConfigError('Hostname doesn`t match certificates CN')
+    # elif verify(CA_cert, server_cert) != True:
+        # raise ConfigError('Certificate isn`t signed by provided CA')
+    # else:
+    return True
 
 
 
@@ -77,6 +77,7 @@ def extract_DN(cert):
 def valid_cert(client_cert, validDNs):
     '''Comparing client DN in dictionary form to DN which are in text file'''
     client_dn = extract_DN(client_cert)
+    print "client_dn %s"% str(client_dn)
     return client_dn in validDNs
 
 def loadMQConfig(filename='handler_config.json'):
@@ -96,8 +97,6 @@ def loadMQConfig(filename='handler_config.json'):
 
 def getValidDNs_from_file(filename='Test_DN.json'):
     """This function create list of valid dn from json file"""
-    params = readConfigFile()
-    filename = params['dn_filename']
     dn_list = []
     try:
         with open(filename) as fileDN:
@@ -120,26 +119,32 @@ class MainHandler(tornado.web.RequestHandler):
         super(MainHandler, self).__init__(*args, **kwargs)
         conf = loadMQConfig()
         self.sender = StompSender(conf)
+
     def initialize(self):
         """Auth by cert"""
         self.current_DNs = getValidDNs_from_file()
         client_cert = self.request.get_ssl_certificate()# return dict
-        if not valid_cert(client_cert, validDNs=self.current_DNs):
-            print "This certificate is not authorized!"
-            self.finish()
+        # print "client_cert %s" %str(client_cert)
+        # if not valid_cert(client_cert, validDNs=self.current_DNs):
+            # print "This certificate is not authorized!"
+            # self.finish()
+
     def get(self):
         """get function of jsonhandler"""
         self.write("getting some info")
+
     def post(self):
         """post function of json handler"""
         self.write(self.request.get_ssl_certificate())
         msg = self.request.body.decode('string-escape').strip('"')
         message = json.loads(msg)
         self.sendMessage(msg)
+
     def sendMessage(self, message):
         """This method sends message to mq"""
         print "sending message:" + str(message)
         self.sender.sendMessage(message)
+
 def make_app():
     """Make app with page"""
     return tornado.web.Application([(r"/", MainHandler)])
@@ -151,6 +156,7 @@ def generate_ssl_context(server_certificate, server_key, ca_cert):
     mySSLContex.load_verify_locations(ca_cert)
     mySSLContex.verify_mode = ssl.CERT_REQUIRED
     return mySSLContex
+
 if __name__ == "__main__":
 
     params = readConfigFile('handler_config.json')
