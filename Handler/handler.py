@@ -19,11 +19,14 @@ from stompSender import StompSender
 def transformDNComponentsToStr(dnList):
 # [('DC', 'ch'), ('DC', 'cern'), ('OU', 'computers'), ('CN', 'lhcbci-cernvm03.cern.ch')#]
 # to /DC=ch/DC=cern/OU=computers/CN=lhcbci-cernvm03.cern.ch
+  for el in dnList:
+      if len(el)!=2:
+          raise ValueError('There must be only 2 elements in this tuple')
   transformed = ['/'+el[0]+'='+el[1] for el in dnList]
   return ''.join(transformed)
 
 def extract_DN(cert):
-  x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, cert)
+  x509 = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
   dn = x509.get_subject().get_components()
   return transformDNComponentsToStr(dn)
 
