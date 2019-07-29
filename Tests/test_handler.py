@@ -9,11 +9,11 @@ from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from OpenSSL import crypto
-from handler import extract_DN, getValidDNs_from_file, valid_cert, transformDNComponentsToStr
+from handler import extract_DN, getValidDNs_from_file, valid_cert, transform_dn_components_to_str, transform_str_to_dict
 from py_cert import create_CA
 
 class TestHandlerTransformDNComponentsToStr(unittest.TestCase):
-    """ Unit tests for transformDNComponentsToStr
+    """ Unit tests for transform_dn_components_to_str
     """
     def setUp(self):
         pass
@@ -22,20 +22,28 @@ class TestHandlerTransformDNComponentsToStr(unittest.TestCase):
     def test_success_possible_cert(self):
         """Success test for posible DN"""
         tested_dn = [('DC', 'ch'), ('DC', 'cern'), ('OU', 'computers'), ('CN', 'lhcbi-cernvm03.cern.ch')]
-        result_str = transformDNComponentsToStr(tested_dn)
+        result_str = transform_dn_components_to_str(tested_dn)
         self.assertEqual(result_str, '/DC=ch/DC=cern/OU=computers/CN=lhcbi-cernvm03.cern.ch')
     def test_success_test_cert(self):
         """Success test for certificate, which is used in tests"""
         tested_cert_file = open('../testCerts/user.crt', 'r')
         tested_cert_data = tested_cert_file.read()
         cert = crypto.load_certificate(crypto.FILETYPE_PEM, tested_cert_data)
-        tested_dn =  transformDNComponentsToStr(cert.get_subject().get_components())
+        tested_dn =  transform_dn_components_to_str(cert.get_subject().get_components())
         self.assertEqual(tested_dn, '/C=PL/ST=User/L=KR/O=LocalFAke/CN=userCert/emailAddress=user@fake.pl')
     def test_raise_error_incorrect_dn(self):
         """If DN is incorrect this function must raise an ValueError"""
         tested_dn = [('DC', 'ch'), ('DC', 'cern'), ('OU', 'computers', 'Ooops'), ('CN', 'lhcbi-cernvm03.cern.ch')]
-        self.assertRaises(ValueError, transformDNComponentsToStr, tested_dn)
+        self.assertRaises(ValueError, transform_dn_components_to_str, tested_dn)
 
+class TestHandlerTransformStrToDict(unittest.TestCase):
+    """ Unit tests for transform_str_to_dict
+    """
+    def test_success_possible_cert(self):
+        """Success test for posible DN string"""
+        tested_str = '/DC=ch/DC=cern/OU=computers/CN=lhcbi-cernvm03.cern.ch'
+        result_dict = transform_str_to_dict(tested_str)
+        self.assertEqual(result_dict, {'subject': ['DC', 'ch', 'DC', 'cern', 'OU', 'computers','CN', 'lhcbi-cernvm03.cern.ch']})
 
 
 
@@ -116,6 +124,7 @@ class TestHandlerValidCert(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerExtractDN)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerTransformStrToDict)
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerTransformDNComponentsToStr))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerGetValidDNsFromFile))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerValidCert))
