@@ -30,7 +30,6 @@ r2 = requests.post(URL, cert=(client_cert, client_key),
 print r2.text
 
 
-
 class MyListener(stomp.ConnectionListener):
     def on_error(self, headers, message):
         print('received an error "%s"' % message)

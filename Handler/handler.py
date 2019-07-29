@@ -5,6 +5,8 @@
    configuration is described in handler_config.json"""
 
 import ssl
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 from OpenSSL import SSL
 from OpenSSL import crypto
 import json
@@ -26,10 +28,14 @@ def transformDNComponentsToStr(dnList):
   return ''.join(transformed)
 
 def extract_DN(cert):
-  x509 = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
-  dn = x509.get_subject().get_components()
-  return transformDNComponentsToStr(dn)
-
+    certificate = x509.load_der_x509_certificate(cert, default_backend())
+    subject = certificate.subject
+    dn={}
+    for attribute in subject:
+        dn[attribute.oid._name]=attribute.value
+#    x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, cert)
+#    dn = x509.get_subject().get_components()
+    return dn
 def valid_cert(client_cert, validDNs):
   '''Comparing client DN in dictionary form to DN which are in text file'''
   client_dn = extract_DN(client_cert)
@@ -75,6 +81,7 @@ class MainHandler(tornado.web.RequestHandler):
   def post(self):
     """post function of json handler"""
     client_cert = self.request.get_ssl_certificate(True)
+    print extract_DN(client_cert)
     if not valid_cert(client_cert, self.validDNs):
       print "This certificate is not authorized! Bad DN!"
       return

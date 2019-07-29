@@ -10,7 +10,7 @@ from cryptography.x509.oid import NameOID
 
 
 # pylint: disable = W0223, invalid-name, arguments-differ, line-too-long
-def create_CA(path, path_key, CA_subj_dict):
+def create_CA(path, path_key, CA_subj_dict, serialization_format):
     '''Creating CA
        dirpath - path to directory, where CA will be placed
        CA_subj_dict - dict, like this CA_subj_dict={'Country':u'PL', ...}'''
@@ -38,7 +38,7 @@ def create_CA(path, path_key, CA_subj_dict):
     CA_cert = CA_cert.add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
     CA_cert = CA_cert.sign(private_key_CA, hashes.SHA256(), default_backend())
     with open(path, 'wb') as CAcert:
-        CAcert.write(CA_cert.public_bytes(serialization.Encoding.PEM))
+        CAcert.write(CA_cert.public_bytes(serialization_format))
     return private_key_CA, CA_subject, CA_cert
 
 def create_test_cert(path, path_key, private_key_CA, CA_subject, test_subj_dict):
