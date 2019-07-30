@@ -66,10 +66,9 @@ def getValidDNs_from_file(filename='Test_DN.json'):
     try:
         with open(filename) as fileDN:
             dn_list = json.load(fileDN)
+            return dn_list
     except IOError:
-        print 'Cannot find file with Valid DNs'
-        raise
-    return dn_list
+        raise IOError('Cannot find file with Valid DNs')
 
 class MainHandler(tornado.web.RequestHandler):
 
@@ -135,7 +134,7 @@ def main(argv):
     define("config", type=str, help="path to config file",
            callback=lambda path: options.parse_config_file(path, final=False))
     options.parse_command_line()
-
+    
     print "options loaded:%s" % str(options.as_dict())
     print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(options.host, options.port)
 
