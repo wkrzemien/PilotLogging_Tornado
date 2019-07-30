@@ -67,7 +67,8 @@ def getValidDNs_from_file(filename='Test_DN.json'):
         with open(filename) as fileDN:
             dn_list = json.load(fileDN)
     except IOError:
-        pass
+        print 'Cannot find file with Valid DNs'
+        raise
     return dn_list
 
 class MainHandler(tornado.web.RequestHandler):
@@ -145,4 +146,7 @@ def main(argv):
     tornado.ioloop.IOLoop.current().start()
 
 if __name__ == "__main__":
-    main(sys.argv)
+    try:
+        main(sys.argv)
+    except KeyboardInterrupt:
+        print '\nConnection is closed'
