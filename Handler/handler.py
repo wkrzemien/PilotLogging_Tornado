@@ -8,6 +8,7 @@
 import json
 import sys
 import ssl
+import socket
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 import tornado.web
@@ -15,6 +16,16 @@ import tornado.httpserver
 import tornado.ioloop
 from tornado.options import options, define
 from stompSender import StompSender
+
+def are_params_valid(files):
+    """Checking if params are valid"""
+    for filename in files:
+        try:
+            with open(filename) as test_file:
+                print ('%s exists' %  filename)
+        except IOError:
+            raise IOError('This %s cannot be accessed' %  filename)
+    return True   
 
 def transform_str_to_dict(strdn):
     """From  /DC=ch/DC=cern/OU=computers/CN=lhcbci-cernvm03.cern.ch
@@ -68,7 +79,7 @@ def getValidDNs_from_file(filename='Test_DN.json'):
             dn_list = json.load(fileDN)
             return dn_list
     except IOError:
-        raise IOError('Cannot find file with Valid DNs')
+        raise IOError('Cannot find file %s with Valid DNs' % filename)
 
 class MainHandler(tornado.web.RequestHandler):
 
@@ -135,6 +146,9 @@ def main(argv):
            callback=lambda path: options.parse_config_file(path, final=False))
     options.parse_command_line()
     
+    files_to_check = [options.server_cert, options.server_key, options.ca_cert, options.dn_filename]
+    are_params_valid(files_to_check)
+
     print "options loaded:%s" % str(options.as_dict())
     print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(options.host, options.port)
 

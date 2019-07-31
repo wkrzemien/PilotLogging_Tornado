@@ -9,8 +9,26 @@ from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from OpenSSL import crypto
-from handler import extract_DN, getValidDNs_from_file, valid_cert, transform_dn_components_to_str, transform_str_to_dict
+from handler import extract_DN, getValidDNs_from_file, valid_cert, transform_dn_components_to_str, transform_str_to_dict, are_params_valid
 from py_cert import create_CA
+
+class TestHandlerAreParamsValid(unittest.TestCase):
+    """Unit tests for are_params_valid function"""
+    def setUp(self):
+        """Create test files"""
+        test_0 = open('test_0', 'w+')
+        test_1 = open('test_1', 'w+')
+    def tearDown(self):
+        os.remove('test_0')
+        os.remove('test_1')
+    def test_success(self):
+        """Check for test files"""
+        files_to_check = ['test_0', 'test_1']
+        self.assertTrue(are_params_valid(files_to_check))
+    def test_raising_correct_error(self):
+        """Check if function raises IOError for invalid file name\n"""
+        files_to_check = ['test_0', 'test_unexpected']
+        self.assertRaisesRegexp(IOError, 'This test_unexpected cannot be accessed', are_params_valid, files_to_check )
 
 class TestHandlerTransformDNComponentsToStr(unittest.TestCase):
     """ Unit tests for transform_dn_components_to_str
@@ -81,8 +99,7 @@ class TestHandlerGetValidDNsFromFile(unittest.TestCase):
 
     def test_fail(self):
         """Check if we can get valid DN from incorrect file"""
-        res = getValidDNs_from_file(filename='it_does_not_exist')
-        self.assertFalse(res)
+        self.assertRaises(IOError, getValidDNs_from_file, 'it_does_not_exist.json')
 class TestHandlerValidCert(unittest.TestCase):
     """TestCase for ValidCert function"""
     def setUp(self):
@@ -124,7 +141,8 @@ class TestHandlerValidCert(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerExtractDN)
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerTransformStrToDict)
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerTransformStrToDict))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerAreParamsValid))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerTransformDNComponentsToStr))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerGetValidDNsFromFile))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestHandlerValidCert))
