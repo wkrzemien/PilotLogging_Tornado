@@ -4,28 +4,65 @@
    and if all is ok send message to message queue,
    configuration is described in handler_config.json"""
 
-
+import datetime
 import json
 import sys
 import ssl
 import socket
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import padding
 import tornado.web
 import tornado.httpserver
 import tornado.ioloop
 from tornado.options import options, define
 from stompSender import StompSender
 
-def are_params_valid(files):
-    """Checking if params are valid"""
+
+
+
+def are_params_valid(files, server_cert, CA_cert, network):
+    """Checking if params are valid, params:
+        files - list of file_paths to certificates and json
+        server_cert - path to server certificate
+        CA_cert - path to CA certificate
+        network - dictionary of tuples 
+        {Tornado:('server_url',port), MQ:('MQ_url', port)}"""
+    '''Checking if files exists'''
     for filename in files:
         try:
             with open(filename) as test_file:
                 print ('%s exists' %  filename)
         except IOError:
             raise IOError('This %s cannot be accessed' %  filename)
-    return True   
+    '''Checking certificates'''
+    '''Loading certificates'''
+    server_cert_file =  open (server_cert, 'r')
+    server_cert_data = server_cert_file.read()
+    server_cert = x509.load_pem_x509_certificate(server_cert_data, default_backend())
+    CA_cert_file =  open (CA_cert, 'r')
+    CA_cert_data = CA_cert_file.read()
+    CA_cert = x509.load_pem_x509_certificate(CA_cert_data, default_backend())
+    today = datetime.datetime.now()
+    print 'Today is %s ' % today.date()
+    print 'Time of checking certificates - %d hour, %d minute,  %d second' % (today.hour, today.minute, today.second)
+    '''Checking certificates dates'''
+    for cert in [server_cert, CA_cert]:
+        if cert.not_valid_after < today or cert.not_valid_before > today:
+            raise RuntimeError('This certficate %s isn`t valid at this moment' % cert)
+    print 'Date and time of certificates is ok'
+    '''Checking certificates signature'''
+    CA_key = CA_cert.public_key()
+    CA_key.verify(server_cert.signature, server_cert.tbs_certificate_bytes, padding.PKCS1v15(), server_cert.signature_hash_algorithm)
+    print 'Signature of certificate is ok'
+    '''Checking certificates CN'''
+    Tornado_CN = network['Tornado'][0]
+    cert_subject = server_cert.subject
+    cert_CN = cert_subject.get_attributes_for_oid(x509.NameOID.COMMON_NAME)[0].value
+    if Tornado_CN != cert_CN:
+        raise RuntimeError('CN of this server certificate doesn`t equals to url of Tornado Handler')
+    else:
+        print 'CN of server certificate subject is equal to url of handler'
 
 def transform_str_to_dict(strdn):
     """From  /DC=ch/DC=cern/OU=computers/CN=lhcbci-cernvm03.cern.ch
@@ -146,8 +183,9 @@ def main(argv):
            callback=lambda path: options.parse_config_file(path, final=False))
     options.parse_command_line()
     
-    files_to_check = [options.server_cert, options.server_key, options.ca_cert, options.dn_filename]
-    are_params_valid(files_to_check)
+    files_to_check = [options.server_cert, options.server_key, options.ca_cert, options.dn_filename, options.config]
+    network = {'Tornado':(options.host, options.port), 'MQ':(options.mq_host, options.mq_port)}
+    are_params_valid(files_to_check, options.server_cert, options.CA_cert, network)
 
     print "options loaded:%s" % str(options.as_dict())
     print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(options.host, options.port)
