@@ -70,6 +70,7 @@ def are_params_valid(files, server_cert, CA_cert, network):
         test.close()
     except Exception, e:
         raise e
+    return True
 
 def transform_str_to_dict(strdn):
     """From  /DC=ch/DC=cern/OU=computers/CN=lhcbci-cernvm03.cern.ch
