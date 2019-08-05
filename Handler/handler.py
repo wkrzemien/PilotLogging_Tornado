@@ -63,6 +63,13 @@ def are_params_valid(files, server_cert, CA_cert, network):
         raise RuntimeError('CN of this server certificate doesn`t equals to url of Tornado Handler')
     else:
         print 'CN of server certificate subject is equal to url of handler'
+    '''Test if address is already in use'''
+    try:
+        test = socket.socket()
+        test.bind(network['Tornado'])
+        test.close()
+    except Exception, e:
+        raise e
 
 def transform_str_to_dict(strdn):
     """From  /DC=ch/DC=cern/OU=computers/CN=lhcbci-cernvm03.cern.ch
@@ -183,9 +190,9 @@ def main(argv):
            callback=lambda path: options.parse_config_file(path, final=False))
     options.parse_command_line()
     
-    files_to_check = [options.server_cert, options.server_key, options.ca_cert, options.dn_filename, options.config]
+    files_to_check = [options.server_cert, options.server_key, options.ca_cert, options.dn_filename]
     network = {'Tornado':(options.host, options.port), 'MQ':(options.mq_host, options.mq_port)}
-    are_params_valid(files_to_check, options.server_cert, options.CA_cert, network)
+    are_params_valid(files_to_check, options.server_cert, options.ca_cert, network)
 
     print "options loaded:%s" % str(options.as_dict())
     print "STARTING TORNADO SERVER! Host:%s, Port:%i"%(options.host, options.port)
