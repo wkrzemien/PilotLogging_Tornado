@@ -143,17 +143,18 @@ class MainHandler(tornado.web.RequestHandler):
         """Auth by cert"""
         self.validDNs = getValidDNs_from_file(options.as_dict()["dn_filename"])
 
+    def prepare(self):
+        client_cert = self.request.get_ssl_certificate(True)
+        if not valid_cert(client_cert, self.validDNs):
+            print "This certificate is not authorized! Bad DN!"
+            self.finish()
+
     def get(self):
-        """get function of jsonhandler"""
+        """get function of handler"""
         self.write("getting some info")
 
     def post(self):
-        """post function of json handler"""
-        client_cert = self.request.get_ssl_certificate(True)
-        print extract_DN(client_cert)
-        if not valid_cert(client_cert, self.validDNs):
-            print "This certificate is not authorized! Bad DN!"
-            return
+        """post function of handler"""
         self.write(self.request.get_ssl_certificate())
         msg = self.request.body.decode('string-escape').strip('"')
         self.sendMessage(msg)

@@ -11,6 +11,9 @@ client_cert = os.path.join(certDir+'user.crt')
 client_key = os.path.join(certDir+'user.key')
 CAcert = os.path.join(certDir+'CAcert.pem')
 
+invalid_cert = os.path.join(certDir+'invalid_cert.pem')
+invalid_key = os.path.join(certDir+'invalid_key.pem')
+
 URL = sys.argv[1]  #'https://localhost:1027'
 receiver_host = sys.argv[2] #'localhost'
 
@@ -25,22 +28,26 @@ msg = {
 
 json_msg = json.dumps(msg, separators=(', ', ': '))
 
-r2 = requests.post(URL, cert=(client_cert, client_key),
-                   verify=CAcert, json=json_msg)
-print r2.text
+r1 = requests.post(URL, cert=(invalid_cert, invalid_key), verify=CAcert, json=json_msg)
+
+print r1.text
+
+#r2 = requests.post(URL, cert=(client_cert, client_key),
+#                   verify=CAcert, json=json_msg)
+#print r2.text
 
 
-class MyListener(stomp.ConnectionListener):
-    def on_error(self, headers, message):
-        print('received an error "%s"' % message)
-    def on_message(self, headers, message):
-        print('received a message "%s"' % message)
-
-conn = stomp.Connection()
-conn.set_listener('', MyListener())
-conn.start()
-conn.connect('guest', 'guest', wait=True)
-print "Start of receiving"
-conn.subscribe(destination='/queue/test', id=1, ack='auto')
-while True:
-    time.sleep(0.2)
+#class MyListener(stomp.ConnectionListener):
+#    def on_error(self, headers, message):
+#        print('received an error "%s"' % message)
+#    def on_message(self, headers, message):
+#        print('received a message "%s"' % message)
+#
+#conn = stomp.Connection()
+#conn.set_listener('', MyListener())
+#conn.start()
+#conn.connect('guest', 'guest', wait=True)
+#print "Start of receiving"
+#conn.subscribe(destination='/queue/test', id=1, ack='auto')
+#while True:
+#    time.sleep(0.2)
