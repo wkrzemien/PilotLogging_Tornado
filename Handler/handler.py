@@ -19,14 +19,20 @@ from tornado.options import options, define
 from stompSender import StompSender
 
 
+# pylint: disable=invalid-name,protected-access,arguments-differ,abstract-method,line-too-long,unused-argument,too-many-locals
+
+
 def read_cert(cert_path):
+    """
+    Function which return x509 certificate from string path
+    """
     cert_file = open(cert_path, 'r')
     cert_data = cert_file.read()
     try:
         cert = x509.load_pem_x509_certificate(cert_data, default_backend())
-    except Exception, e:
+    except ValueError:
         cert = x509.load_der_x509_certificate(cert_data, default_backend())
-    return cert    
+    return cert
 
 
 def are_params_valid(files, server_cert_path, CA_cert_path, network):
@@ -34,32 +40,31 @@ def are_params_valid(files, server_cert_path, CA_cert_path, network):
         files - list of file_paths to certificates and json
         server_cert - path to server certificate
         CA_cert - path to CA certificate
-        network - dictionary of tuples 
+        network - dictionary of tuples
         {Tornado:('server_url',port), MQ:('MQ_url', port)}"""
-    '''Checking if files exists'''
+        #Checking if files exists
     for filename in files:
         try:
-            with open(filename) as test_file:
-                print ('%s exists' %  filename)
+            open(filename)
         except IOError:
             raise IOError('This %s cannot be accessed' %  filename)
-    '''Checking certificates'''
+    #Checking certificates
     today = datetime.datetime.now()
     print 'Today is %s ' % today.date()
     print 'Time of checking certificates - %d hour, %d minute,  %d second' % (today.hour, today.minute, today.second)
-    '''Checking certificates dates'''
+    #Checking certificates dates
     for cert_path in [server_cert_path, CA_cert_path]:
         cert = read_cert(cert_path)
         if cert.not_valid_after < today or cert.not_valid_before > today:
             raise RuntimeError('This certficate %s isn`t valid at this moment' % cert_path)
     print 'Date and time of certificates is ok'
-    '''Checking certificates signature'''
+    #Checking certificates signature
     server_cert = read_cert(server_cert_path)
     CA_cert = read_cert(CA_cert_path)
     CA_key = CA_cert.public_key()
     CA_key.verify(server_cert.signature, server_cert.tbs_certificate_bytes, padding.PKCS1v15(), server_cert.signature_hash_algorithm)
     print 'Signature of certificate is ok'
-    '''Checking certificates CN'''
+    #Checking certificates CN
     Tornado_CN = network['Tornado'][0]
     cert_subject = server_cert.subject
     cert_CN = cert_subject.get_attributes_for_oid(x509.NameOID.COMMON_NAME)[0].value
@@ -67,7 +72,7 @@ def are_params_valid(files, server_cert_path, CA_cert_path, network):
         raise RuntimeError('CN of this server certificate doesn`t equals to url of Tornado Handler')
     else:
         print 'CN of server certificate subject is equal to url of handler'
-    '''Test if address is already in use'''
+    #Test if address is already in use
     try:
         test = socket.socket()
         test.bind(network['Tornado'])
@@ -98,6 +103,7 @@ def transform_dn_components_to_str(dn_list):
     return ''.join(transformed)
 
 def extract_DN(cert):
+    """Extract DN from certificate (bytes ?)"""
     certificate = x509.load_der_x509_certificate(cert, default_backend())
     subject = certificate.subject
     dn = {}
@@ -131,7 +137,6 @@ def getValidDNs_from_file(filename='Test_DN.json'):
         raise IOError('Cannot find file %s with Valid DNs' % filename)
 
 class MainHandler(tornado.web.RequestHandler):
-
     """Request handler for json messages"""
     def __init__(self, *args, **kwargs):
         super(MainHandler, self).__init__(*args, **kwargs)
@@ -177,6 +182,7 @@ def generate_ssl_context(server_certificate, server_key, ca_cert):
     return mySSLContex
 
 def main(argv):
+    '''Main method'''
     define("host", default='localhost', help="tornado host", type=str)
     define("port", default=1027, help="tornado port", type=int)
 
@@ -195,7 +201,7 @@ def main(argv):
     define("config", type=str, help="path to config file",
            callback=lambda path: options.parse_config_file(path, final=False))
     options.parse_command_line()
-    
+
     files_to_check = [options.server_cert, options.server_key, options.ca_cert, options.dn_filename]
     network = {'Tornado':(options.host, options.port), 'MQ':(options.mq_host, options.mq_port)}
     are_params_valid(files_to_check, options.server_cert, options.ca_cert, network)
