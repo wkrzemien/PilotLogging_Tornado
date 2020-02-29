@@ -1,6 +1,5 @@
 language: python
 python:
-  - "2.6"
   - "2.7"
 
 env:
@@ -17,10 +16,10 @@ install:
 
 # command to run tests
 script:
-  - export PYTHONPATH=${PWD%/*}
+  - export PYTHONPATH=$PWD/Handler
   - ls $PYTHONPATH
   - if [[ "${CHECK}" == "pytest"  ]];
-    then pytest;
+    then cd Tests && python test_handler.py;
     elif [[ "${CHECK}" == "pylint"  ]];
     then travis_wait 30 ./runPylint.sh;
     fi

@@ -11,4 +11,7 @@ requests
 tornado
 python-coveralls
 autopep8
+cryptography
 pika
+pyopenssl
+
